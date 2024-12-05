@@ -76,13 +76,24 @@
         input[type="file"] {
             display: none;
         }
+        #copyIcon {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            padding: 5px;
+            position: fixed;
+            right: 20px;
+        }
+        #copyIcon:hover {
+            background-color: #e9e9e9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Convert Cookies to Netscape Format</h1>
-            <p>Upload a file by drag-and-drop, clicking the box below, or paste text directly. Convert cookie.txt files to the Netscape HTTP Cookie File format defined <span> <a href="https://docs.cyotek.com/cyowcopy/1.10/netscapecookieformat.html" target="_blank">Here</a></span></p>
+            <p>Convert cookie.txt files to the Netscape HTTP Cookie File format defined <span> <a href="https://docs.cyotek.com/cyowcopy/1.10/netscapecookieformat.html" target="_blank">Here</a></span>. Upload a file by drag-and-drop, clicking the box below, or paste text directly.</p>
         </div>
         <div class="wrapper">
             <div class="left">
@@ -92,6 +103,8 @@
                 <textarea id="input" placeholder="Paste your cookies here..."></textarea>
             </div>  
             <div class="right">
+                <!-- Add hover text that says "Click to copy" -->
+                <img src="copy.svg" alt="Copy to clipboard" id="copyIcon" title="Copy to clipboard">
                 <textarea id="output" readonly placeholder="Converted cookies will appear here..."></textarea>
             </div>
         </div>
@@ -123,6 +136,18 @@
                 handleFile(file);
             } else {
                 alert("Please drop a valid .txt file.");
+            }
+        });
+
+                // Copy output to clipboard
+                document.getElementById('copyIcon').addEventListener('click', async () => {
+            const output = document.getElementById('output');
+            try {
+                await navigator.clipboard.writeText(output.value);
+            } catch (err) {
+                // Fallback for older browsers
+                output.select();
+                document.execCommand('copy');
             }
         });
 
