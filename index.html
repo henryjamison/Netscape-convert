@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookies Converter</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .wrapper {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            gap: 20px;
+        }
+        .left, .right {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0; /* Fixes flexbox overflow issues */
+        }
+        #dropZone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 20px 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        #dropZone:hover {
+            background-color: #e9e9e9;
+            border-color: #aaa;
+        }
+        #input, #output {
+            flex-grow: 1;
+            width: 100%;
+            resize: none;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #input {
+            border: 1px solid #ccc;
+        }
+        #output {
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Convert Cookies to Netscape Format</h1>
+            <p>Upload a file by drag-and-drop, clicking the box below, or paste text directly. Convert cookie.txt files to the Netscape HTTP Cookie File format defined <span> <a href="https://docs.cyotek.com/cyowcopy/1.10/netscapecookieformat.html" target="_blank">Here</a></span></p>
+        </div>
+        <div class="wrapper">
+            <div class="left">
+                <button onclick="convertCookies()">Convert</button>
+                <div id="dropZone">Drag and drop your .txt file here, or click to select one</div>
+                <input type="file" id="fileInput" accept=".txt">
+                <textarea id="input" placeholder="Paste your cookies here..."></textarea>
+            </div>  
+            <div class="right">
+                <textarea id="output" readonly placeholder="Converted cookies will appear here..."></textarea>
+            </div>
+        </div>
+    </div>
+    <script>
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const textArea = document.getElementById("input");
+        const outputArea = document.getElementById("output");
+
+        // Handle file selection via click
+        dropZone.addEventListener("click", () => fileInput.click());
+
+        // Handle drag-and-drop
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("hover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("hover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("hover");
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === "text/plain") {
+                handleFile(file);
+            } else {
+                alert("Please drop a valid .txt file.");
+            }
+        });
+
+        // Handle file input change
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        // Read file and update textarea
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                textArea.value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        // Convert cookies logic
+        function convertCookies() {
+            const input = document.getElementById("input").value;
+            const output = document.getElementById("output");
+
+            if (!input.trim()) {
+                output.value = "No input provided.";
+                return;
+            }
+
+            const lines = input.split("\n");
+            const result = ["# Netscape HTTP Cookie File", "# Generated via Cookie Converter"];
+
+            for (const line of lines) {
+                const fields = line.trim().split(/\s+/);
+                if (fields.length < 7) continue; // Skip invalid lines
+
+                const name = fields[0];
+                const value = fields[1];
+                const domain = fields[2];
+                const path = fields[3];
+                const expiration = fields[4].toLowerCase() === "session" ? "0" : fields[4];
+                const secure = fields.includes("✓") ? "TRUE" : "FALSE";
+                const flag = domain.startsWith(".") ? "TRUE" : "FALSE";
+
+                result.push(`${domain}\t${flag}\t${path}\t${secure}\t${expiration}\t${name}\t${value}`);
+            }
+
+            output.value = result.join("\n");
+        }
+    </script>
+</body>
+</html>
